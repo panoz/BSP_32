@@ -10,7 +10,8 @@ package raucherproblem;
  */
 public class Simulation {
 
-    final static int SMOKINGTIME = 1000;
+    final static int SMOKINGTIME_MINIMUM = 500;
+    final static int SMOKINGTIME_MAXIMUM = 1000;
     
     public static void main(String[] args) {
         
