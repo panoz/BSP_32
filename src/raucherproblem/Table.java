@@ -45,6 +45,10 @@ public class Table {
         return items.remove(item);
     }
     
+    void clear() {
+        items.clear();
+    }
+    
     Set<Item> items() {
         return items;
     }

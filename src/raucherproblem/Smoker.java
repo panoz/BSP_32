@@ -5,6 +5,7 @@
 package raucherproblem;
 
 import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static raucherproblem.Values.Item;
@@ -25,16 +26,60 @@ final class Smoker implements Runnable {
 
     @Override
     public void run() {
-        Set<Item> itemsOnTable=table.items();
-        while(itemsOnTable.isEmpty()) {
+        Set<Item> itemsOnTable = table.items();
+        while (itemsOnTable.isEmpty()) {
             try {
-                table.wait();
+                synchronized (table) {
+                    table.wait();
+                }
             } catch (InterruptedException ex) {
                 Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
             }
-            itemsOnTable=table.items();
+            itemsOnTable = table.items();
         }
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            table.barrier().await();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BrokenBarrierException ex) {
+            Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("Barrier passed");
+        if (itemsOnTable.contains(item)) {
+            try {
+                synchronized (table) {
+                    table.wait();
+                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            removeItemsFromTable();
+            smoke();
+            synchronized (table) {
+                table.notifyAll();
+                try {
+                    table.wait();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+
+    private void removeItemsFromTable() {
+        table.clear();
+    }
+
+    private void smoke() {
+        System.out.println(this + " begins to smoke");
+        try {
+            Thread.sleep((long) ((Simulation.SMOKING_TIME_MAXIMUM - Simulation.SMOKING_TIME_MINIMUM) * Math.random()));
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println(this + " has finished smoking");
+
     }
 
     @Override

@@ -39,14 +39,18 @@ final class Agent implements Runnable {
     }
 
     private Set<Item> twoRandomItems() {
-        List<Item> itemList = new ArrayList<Item>(EnumSet.noneOf(Item.class));
+        List<Item> itemList = new ArrayList<Item>(EnumSet.allOf(Item.class));
+        System.out.println(itemList.size());
         itemList.remove((int) (Item.values().length * Math.random()));
         return EnumSet.copyOf(itemList);
     }
 
     private void waitUntilSmokerHasFinished() {
         try {
-            table.wait();
+            synchronized (table) {
+                table.notifyAll();
+                table.wait();
+            }
         } catch (InterruptedException ex) {
             Logger.getLogger(Agent.class.getName()).log(Level.SEVERE, null, ex);
         }
