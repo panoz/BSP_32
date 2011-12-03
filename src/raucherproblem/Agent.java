@@ -28,9 +28,9 @@ final class Agent implements Runnable {
     public void run() {
 //        throw new UnsupportedOperationException("Not supported yet.");
         while (true) {
-            Set<Item> items = twoRandomItems();
-            table.addAll(items);
-            System.out.println("Agent put " + items + " on the table");
+            Set<Item> twoItems = twoRandomItems();
+            table.addAll(twoItems);
+            System.out.println("Agent put " + twoItems + " on the table");
             System.out.println("Agent waits until smoker has finished");
             waitUntilSmokerHasFinished();
             System.out.println("Agent wakes up");
@@ -40,7 +40,6 @@ final class Agent implements Runnable {
 
     private Set<Item> twoRandomItems() {
         List<Item> itemList = new ArrayList<Item>(EnumSet.allOf(Item.class));
-        System.out.println(itemList.size());
         itemList.remove((int) (Item.values().length * Math.random()));
         return EnumSet.copyOf(itemList);
     }

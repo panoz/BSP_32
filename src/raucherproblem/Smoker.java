@@ -26,42 +26,53 @@ final class Smoker implements Runnable {
 
     @Override
     public void run() {
-        Set<Item> itemsOnTable = table.items();
-        while (itemsOnTable.isEmpty()) {
+        while (true) {
+            Set<Item> itemsOnTable = table.items();
+            while (itemsOnTable.isEmpty()) {
+//            try {
+//                synchronized (table) {
+//                    table.wait();
+//                }
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+                itemsOnTable = table.items();
+            }
+            if (Simulation.DEBUG) {
+                System.out.println(this + " found items " + table.items());
+            }
+            boolean thirdItemFound = !itemsOnTable.contains(item);
             try {
-                synchronized (table) {
-                    table.wait();
-                }
+                table.barrier().await();
             } catch (InterruptedException ex) {
                 Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            itemsOnTable = table.items();
-        }
-        try {
-            table.barrier().await();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (BrokenBarrierException ex) {
-            Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        System.out.println("Barrier passed");
-        if (itemsOnTable.contains(item)) {
-            try {
-                synchronized (table) {
-                    table.wait();
-                }
-            } catch (InterruptedException ex) {
+            } catch (BrokenBarrierException ex) {
                 Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else {
-            removeItemsFromTable();
-            smoke();
-            synchronized (table) {
-                table.notifyAll();
+            if (Simulation.DEBUG) {
+                System.out.println(this + " passed barrier");
+            }
+            if (!thirdItemFound) {
                 try {
-                    table.wait();
+                    synchronized (table) {
+                        table.wait();
+                    }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                if (Simulation.DEBUG) {
+                    System.out.println(this + " found the third item!");
+                }
+                removeItemsFromTable();
+                smoke();
+                synchronized (table) {
+                    table.notifyAll();
+//                try {
+//                    table.wait();
+//                } catch (InterruptedException ex) {
+//                    Logger.getLogger(Smoker.class.getName()).log(Level.SEVERE, null, ex);
+//                }
                 }
             }
         }

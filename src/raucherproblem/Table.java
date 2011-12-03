@@ -49,7 +49,7 @@ public class Table {
         items.clear();
     }
     
-    Set<Item> items() {
+    synchronized Set<Item> items() {
         return items;
     }
     
